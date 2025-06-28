@@ -207,6 +207,19 @@
             flex-shrink: 0;
         }
 
+        .instructions a {
+            color: #FFD700;
+            font-weight: bold;
+            text-decoration: none;
+            border-bottom: 1px dashed #FFD700;
+            transition: all 0.3s;
+        }
+
+        .instructions a:hover {
+            color: #ff9800;
+            border-bottom: 1px solid #ff9800;
+        }
+
         .game-over, .level-complete, .game-complete {
             position: absolute;
             top: 0;
@@ -361,37 +374,6 @@
         
         #password-submit:active {
             transform: scale(0.95);
-        }
-        
-        /* Botón de donación */
-        .donation-btn-container {
-            text-align: center;
-            margin-top: 8px;
-        }
-        
-        .donation-btn {
-            padding: 12px 24px;
-            background: linear-gradient(145deg, #ff9800, #f57c00);
-            border: none;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .donation-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-        }
-        
-        .donation-btn:active {
-            transform: translateY(1px);
         }
         
         /* Modal de QR */
@@ -555,11 +537,6 @@
                 font-size: 1.5rem;
             }
             
-            .donation-btn {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            
             .qr-modal-content {
                 padding: 20px;
             }
@@ -598,11 +575,6 @@
             
             .instructions {
                 font-size: 0.75rem;
-            }
-            
-            .donation-btn {
-                padding: 8px 15px;
-                font-size: 0.85rem;
             }
         }
         
@@ -702,7 +674,7 @@
     <div id="password-screen">
         <div class="password-container">
             <h2><i class="fas fa-lock"></i> Acceso Restringido</h2>
-            <p>¡Bienvenid@ a Gógoblu! Para jugar a MatchBall4, ingresa la contraseña del día.</p>
+            <p>¡Bienvenido a Gógoblu! Para jugar a MatchBall4, ingresa la contraseña del día.</p>
             <p><small>(Pide la contraseña al personal del café)</small></p>
             
             <input type="password" id="password-input" placeholder="Ingresa la contraseña">
@@ -773,15 +745,8 @@
             </div>
         </div>
         
-        <!-- Botón de donación debajo de los controles -->
-        <div class="donation-btn-container">
-            <button class="donation-btn" id="donationBtn">
-                <i class="fas fa-coffee"></i> Puedes apoyar con un café virtual
-            </button>
-        </div>
-        
         <div class="instructions">
-            <i class="fas fa-info-circle"></i> Usa la palanca para cambiar la dirección de la bolita y presiona "MATCH" cuando esté dentro de un círculo para eliminarlo y ganar puntos. Puedes activar el "FRENO" cada 300 puntos. Y en caso de que quieras donar un café virtual, puedes hacerlo <a href="#" id="donationLink">dando clic aquí</a>
+            <i class="fas fa-info-circle"></i> Usa la palanca para cambiar la dirección de la bolita y presiona "MATCH" cuando esté dentro de un círculo para eliminarlo y ganar puntos; avanzas de nivel cuando logres eliminar todos los círculos. También puedes activar el "FRENO" cada 300 puntos. Y en caso de que quieras donar un café virtual al creador del juego, puedes hacerlo <a href="#" id="donationLink">dando clic aquí</a>
         </div>
     </div>
     
@@ -805,7 +770,7 @@
                 </button>
             </div>
             
-            <p class="small" style="margin-top: 15px;">¡Gracias por tu apoyo! Las donaciones ayudan a mejorar el juego.</p>
+            <p class="small" style="margin-top: 15px;">¡Gracias por tu apoyo! Las donaciones ayudan a mejorar el juego y a crear otros nuevos.</p>
         </div>
     </div>
 
@@ -845,7 +810,6 @@
         // =============================================
         
         // Elementos de donación
-        const donationBtn = document.getElementById('donationBtn');
         const donationLink = document.getElementById('donationLink');
         const qrModal = document.getElementById('qr-modal');
         const closeModal = document.getElementById('closeModal');
@@ -861,7 +825,6 @@
         }
         
         // Configurar eventos
-        donationBtn.addEventListener('click', showQRModal);
         donationLink.addEventListener('click', (e) => {
             e.preventDefault();
             showQRModal();
