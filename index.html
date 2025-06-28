@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MatchBall4</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .game-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .joystick-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 80px;
+        }
+
+        .joystick {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(145deg, #ff8a00, #e52e71);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            position: absolute;
+            transition: transform 0.1s;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .btn:active {
+            transform: scale(0.85);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-match {
+            background: linear-gradient(145deg, #00c853, #009624);
+        }
+
+        .btn-brake {
+            background: linear-gradient(145deg, #ff3d00, #c30000);
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+        }
+
+        .btn:active::after {
+            transform: rotate(30deg) translate(10%, 10%);
+        }
+
+        .level-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            z-index: 10;
+        }
+
+        .instructions {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .game-over, .level-complete, .game-complete {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            display: none;
+        }
+
+        .game-over h2, .level-complete h2, .game-complete h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .game-complete h2 {
+            background: linear-gradient(to right, #ffd700, #ff9800);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.2rem;
+        }
+
+        .final-stats {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .restart-btn {
+            padding: 15px 40px;
+            background: linear-gradient(145deg, #00c853, #009624);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+
+        .match-effect {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        .success-effect {
+            background: radial-gradient(circle, rgba(0,200,83,0.7) 0%, rgba(0,200,83,0) 70%);
+        }
+        
+        .error-effect {
+            background: radial-gradient(circle, rgba(255,61,0,0.7) 0%, rgba(255,61,0,0) 70%);
+        }
+
+        .points-popup {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #00c853;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+            animation: popup 1s forwards;
+            pointer-events: none;
+            z-index: 60;
+        }
+
+        .brake-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 193, 7, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Pantalla de contraseña */
+        #password-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .password-container {
+            background: rgba(50, 50, 50, 0.8);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 90%;
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.5);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .password-container h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        
+        #password-input {
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            border: none;
+            text-align: center;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        #password-submit {
+            padding: 15px 40px;
+            background: linear-gradient(145deg, #00c853, #009624);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+        
+        #password-submit:active {
+            transform: scale(0.95);
+        }
+        
+        /* Botón de donación */
+        .donation-btn-container {
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .donation-btn {
+            padding: 12px 24px;
+            background: linear-gradient(145deg, #ff9800, #f57c00);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .donation-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .donation-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Modal de QR */
+        #qr-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            display: none;
+        }
+        
+        .qr-modal-content {
+            background: rgba(50, 50, 50, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 90%;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 152, 0, 0.5);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .qr-modal-content h3 {
+            color: #FFD700;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .qr-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .qr-code {
+            width: 180px;
+            height: 180px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .bank-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .bank-info p {
+            margin: 5px 0;
+        }
+        
+        .copy-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 20px;
+            color: #FFD700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+        }
+        
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .small {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        @keyframes popup {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        /* Media queries optimizadas para móviles */
+        @media (max-width: 500px) {
+            .container {
+                padding: 8px;
+            }
+            
+            header {
+                padding: 8px 0;
+                margin-bottom: 8px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats {
+                font-size: 0.95rem;
+            }
+            
+            .controls {
+                padding: 8px;
+                gap: 8px;
+            }
+            
+            .joystick {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .joystick-knob {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .btn {
+                width: 70px;
+                height: 70px;
+                font-size: 0.85rem;
+            }
+            
+            .game-complete h2 {
+                font-size: 1.8rem;
+            }
+            
+            .action-buttons {
+                gap: 8px;
+            }
+            
+            .instructions {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+            
+            .password-container {
+                padding: 20px;
+            }
+            
+            .password-container h2 {
+                font-size: 1.5rem;
+            }
+            
+            .donation-btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .qr-modal-content {
+                padding: 20px;
+            }
+            
+            .qr-code {
+                width: 150px;
+                height: 150px;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            .btn {
+                width: 65px;
+                height: 65px;
+                font-size: 0.8rem;
+            }
+            
+            .joystick {
+                width: 65px;
+                height: 65px;
+            }
+            
+            .joystick-knob {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .controls {
+                padding: 6px;
+                gap: 6px;
+            }
+            
+            .action-buttons {
+                gap: 6px;
+            }
+            
+            .instructions {
+                font-size: 0.75rem;
+            }
+            
+            .donation-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-height: 700px) {
+            .container {
+                padding: 6px;
+            }
+            
+            header {
+                padding: 6px 0;
+                margin-bottom: 6px;
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .stats {
+                font-size: 0.9rem;
+            }
+            
+            .game-container {
+                margin-bottom: 8px;
+            }
+            
+            .instructions {
+                padding: 6px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            header {
+                padding: 5px 0;
+                margin-bottom: 5px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .stats {
+                font-size: 0.85rem;
+            }
+            
+            .controls {
+                padding: 6px;
+            }
+            
+            .joystick {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .joystick-knob {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .btn {
+                width: 60px;
+                height: 60px;
+                font-size: 0.75rem;
+            }
+            
+            .instructions {
+                padding: 5px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-height: 500px) {
+            .joystick {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .joystick-knob {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .btn {
+                width: 55px;
+                height: 55px;
+                font-size: 0.7rem;
+            }
+            
+            .instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de contraseña -->
+    <div id="password-screen">
+        <div class="password-container">
+            <h2><i class="fas fa-lock"></i> Acceso Restringido</h2>
+            <p>¡Bienvenid@ a Gógoblu! Para jugar a MatchBall4, ingresa la contraseña del día.</p>
+            <p><small>(Pide la contraseña al personal del café)</small></p>
+            
+            <input type="password" id="password-input" placeholder="Ingresa la contraseña">
+            <button id="password-submit">JUGAR</button>
+            
+            <p class="small" style="margin-top: 20px;">¿Quieres apoyar este juego? Desplázate hacia abajo para donar</p>
+        </div>
+    </div>
+    
+    <div class="container" style="display: none;">
+        <header>
+            <h1>MatchBall4 <i class="fas fa-bolt"></i></h1>
+            <div class="stats">
+                <div class="score">Puntos: <span id="score">0</span></div>
+                <div class="level">Nivel: <span id="level">1</span>/10</div>
+                <div class="targets">Objetivos: <span id="targets">5</span></div>
+            </div>
+        </header>
+        
+        <div class="game-container">
+            <div class="level-indicator">Nivel <span id="current-level">1</span></div>
+            <canvas id="gameCanvas"></canvas>
+            <div class="brake-indicator" id="brakeIndicator">¡FRENO ACTIVADO! (10s)</div>
+            
+            <div class="game-over">
+                <h2><i class="fas fa-times-circle"></i> ¡JUEGO TERMINADO!</h2>
+                <div class="final-stats">
+                    <p>Puntuación final: <span id="final-score">0</span></p>
+                    <p>Nivel alcanzado: <span id="final-level">1</span>/10</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()"><i class="fas fa-redo"></i> JUGAR DE NUEVO</button>
+            </div>
+            
+            <div class="level-complete">
+                <h2><i class="fas fa-star"></i> ¡NIVEL COMPLETADO!</h2>
+                <div class="final-stats">
+                    <p>Puntos obtenidos: <span id="level-score">0</span></p>
+                    <p>Siguiente nivel: <span id="next-level">2</span></p>
+                </div>
+                <button class="restart-btn" onclick="nextLevel()"><i class="fas fa-arrow-right"></i> SIGUIENTE NIVEL</button>
+            </div>
+            
+            <div class="game-complete">
+                <h2><i class="fas fa-trophy"></i> ¡FELICITACIONES, HAS CULMINADO EL JUEGO!</h2>
+                <div class="final-stats">
+                    <p>Puntuación total: <span id="total-score">0</span></p>
+                    <p>¡Completaste todos los niveles!</p>
+                </div>
+                <button class="restart-btn" onclick="restartGame()"><i class="fas fa-redo"></i> VOLVER AL NIVEL 1</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="joystick-container">
+                <div class="joystick">
+                    <div class="joystick-knob" id="joystick"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-match" id="matchBtn">
+                    <i class="fas fa-bullseye"></i>
+                    <span>MATCH!</span>
+                </button>
+                <button class="btn btn-brake btn-disabled" id="brakeBtn">
+                    <i class="fas fa-hand-paper"></i>
+                    <span>FRENO</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Botón de donación debajo de los controles -->
+        <div class="donation-btn-container">
+            <button class="donation-btn" id="donationBtn">
+                <i class="fas fa-coffee"></i> Puedes apoyar con un café virtual
+            </button>
+        </div>
+        
+        <div class="instructions">
+            <i class="fas fa-info-circle"></i> Usa la palanca para cambiar la dirección de la bolita y presiona "MATCH" cuando esté dentro de un círculo para eliminarlo y ganar puntos. Puedes activar el "FRENO" cada 300 puntos. Y en caso de que quieras donar un café virtual, puedes hacerlo <a href="#" id="donationLink">dando clic aquí</a>
+        </div>
+    </div>
+    
+    <!-- Modal de QR -->
+    <div id="qr-modal">
+        <div class="qr-modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <h3><i class="fas fa-coffee"></i> ¡Apoya con un café virtual!</h3>
+            
+            <div class="qr-container">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Bancolombia%3A%2055673514323" 
+                     alt="QR Bancolombia" class="qr-code">
+            </div>
+            
+            <div class="bank-info">
+                <p><strong>Bancolombia</strong></p>
+                <p>Número de cuenta: 55673514323</p>
+                <p>Titular: Kevin Castro Gutiérrez</p>
+                <button class="copy-btn" data-account="55673514323">
+                    <i class="fas fa-copy"></i> Copiar número de cuenta
+                </button>
+            </div>
+            
+            <p class="small" style="margin-top: 15px;">¡Gracias por tu apoyo! Las donaciones ayudan a mejorar el juego.</p>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // CONFIGURACIÓN DE CONTRASEÑA (CAMBIAR CADA DÍA)
+        // =============================================
+        const DAILY_PASSWORD = "gogocake"; // Cambia esto cada día
+        
+        // Elementos de la pantalla de contraseña
+        const passwordScreen = document.getElementById('password-screen');
+        const passwordInput = document.getElementById('password-input');
+        const passwordSubmit = document.getElementById('password-submit');
+        
+        // Verificar contraseña al hacer clic en el botón
+        passwordSubmit.addEventListener('click', checkPassword);
+        
+        // Verificar contraseña al presionar Enter
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkPassword();
+        });
+        
+        function checkPassword() {
+            if (passwordInput.value === DAILY_PASSWORD) {
+                passwordScreen.style.display = 'none';
+                document.querySelector('.container').style.display = 'flex';
+                initGame();
+            } else {
+                alert("Contraseña incorrecta. Por favor, pide la contraseña actual al personal del café.");
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+        
+        // =============================================
+        // SISTEMA DE DONACIONES
+        // =============================================
+        
+        // Elementos de donación
+        const donationBtn = document.getElementById('donationBtn');
+        const donationLink = document.getElementById('donationLink');
+        const qrModal = document.getElementById('qr-modal');
+        const closeModal = document.getElementById('closeModal');
+        
+        // Mostrar modal de QR
+        function showQRModal() {
+            qrModal.style.display = 'flex';
+        }
+        
+        // Ocultar modal de QR
+        function hideQRModal() {
+            qrModal.style.display = 'none';
+        }
+        
+        // Configurar eventos
+        donationBtn.addEventListener('click', showQRModal);
+        donationLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showQRModal();
+        });
+        closeModal.addEventListener('click', hideQRModal);
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        qrModal.addEventListener('click', (e) => {
+            if (e.target === qrModal) {
+                hideQRModal();
+            }
+        });
+        
+        // Configurar botones de copiar
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const account = button.getAttribute('data-account');
+                copyToClipboard(account);
+                
+                // Efecto visual
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                button.style.background = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+            });
+        });
+        
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        
+        // =============================================
+        // CÓDIGO DEL JUEGO
+        // =============================================
+        
+        // Configuración del juego
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const targetsElement = document.getElementById('targets');
+        const matchBtn = document.getElementById('matchBtn');
+        const brakeBtn = document.getElementById('brakeBtn');
+        const joystick = document.getElementById('joystick');
+        const gameOverScreen = document.querySelector('.game-over');
+        const levelCompleteScreen = document.querySelector('.level-complete');
+        const gameCompleteScreen = document.querySelector('.game-complete');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalLevelElement = document.getElementById('final-level');
+        const levelScoreElement = document.getElementById('level-score');
+        const totalScoreElement = document.getElementById('total-score');
+        const currentLevelElement = document.getElementById('current-level');
+        const brakeIndicator = document.getElementById('brakeIndicator');
+        const nextLevelElement = document.getElementById('next-level');
+        
+        // Variables del juego
+        let gameRunning = true;
+        let score = 0;
+        let currentLevel = 1;
+        let targetsRemaining = 5;
+        let playerBall = {
+            x: 100,
+            y: 100,
+            radius: 15,
+            speed: 3,
+            originalSpeed: 3,
+            dx: 3,
+            dy: 3,
+            color: '#FF5252'
+        };
+        
+        let brakeActive = false;
+        let brakeAvailable = false;
+        let brakePower = 0;
+        let brakeTimeout;
+        let targets = [];
+        let joystickActive = false;
+        let joystickAngle = 0;
+        let nextTargetId = 0; // Contador para IDs únicos de objetivos
+        
+        // Configuración de niveles
+        const levelConfig = [
+            { targets: 5, minRadius: 25, maxRadius: 35, speed: 3 }, // Nivel 1
+            { targets: 6, minRadius: 23, maxRadius: 33, speed: 3.2 }, // Nivel 2
+            { targets: 7, minRadius: 21, maxRadius: 31, speed: 3.4 }, // Nivel 3
+            { targets: 8, minRadius: 19, maxRadius: 29, speed: 3.6 }, // Nivel 4
+            { targets: 9, minRadius: 17, maxRadius: 27, speed: 3.8 }, // Nivel 5
+            { targets: 10, minRadius: 15, maxRadius: 25, speed: 4 }, // Nivel 6
+            { targets: 11, minRadius: 14, maxRadius: 24, speed: 4.2 }, // Nivel 7
+            { targets: 12, minRadius: 13, maxRadius: 23, speed: 4.4 }, // Nivel 8
+            { targets: 13, minRadius: 12, maxRadius: 22, speed: 4.6 }, // Nivel 9
+            { targets: 15, minRadius: 10, maxRadius: 20, speed: 5 }  // Nivel 10
+        ];
+        
+        function initGame() {
+            // Ajustar tamaño del canvas
+            function resizeCanvas() {
+                const gameContainer = canvas.parentElement;
+                canvas.width = gameContainer.clientWidth;
+                canvas.height = gameContainer.clientHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('orientationchange', resizeCanvas);
+            
+            // Inicializar el nivel actual
+            function initLevel() {
+                nextTargetId = 0; // Reiniciar contador de IDs para este nivel
+                
+                currentLevelElement.textContent = currentLevel;
+                const config = levelConfig[currentLevel - 1];
+                targetsRemaining = config.targets;
+                playerBall.originalSpeed = config.speed;
+                playerBall.speed = brakeActive ? config.speed * 0.3 : config.speed;
+                
+                // Reiniciar posición de la bola
+                playerBall.x = canvas.width / 2;
+                playerBall.y = canvas.height / 2;
+                
+                // Crear objetivos
+                targets = [];
+                for (let i = 0; i < config.targets; i++) {
+                    let validPosition = false;
+                    let target;
+                    
+                    while (!validPosition) {
+                        const radius = Math.random() * (config.maxRadius - config.minRadius) + config.minRadius;
+                        const x = radius + Math.random() * (canvas.width - radius * 2);
+                        const y = radius + Math.random() * (canvas.height - radius * 2);
+                        
+                        // Comprobar que no se superponga con otros objetivos o la bola del jugador
+                        let overlap = false;
+                        
+                        // Comprobar con la bola del jugador
+                        const dx = playerBall.x - x;
+                        const dy = playerBall.y - y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < playerBall.radius + radius + 20) {
+                            overlap = true;
+                        }
+                        
+                        // Comprobar con otros objetivos
+                        for (let j = 0; j < targets.length; j++) {
+                            const other = targets[j];
+                            const dx = other.x - x;
+                            const dy = other.y - y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (distance < other.radius + radius + 10) {
+                                overlap = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!overlap) {
+                            target = {
+                                x,
+                                y,
+                                radius,
+                                color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+                                id: nextTargetId++ // Asignar ID único
+                            };
+                            validPosition = true;
+                        }
+                    }
+                    
+                    targets.push(target);
+                }
+                
+                // Actualizar UI
+                scoreElement.textContent = score;
+                levelElement.textContent = currentLevel;
+                targetsElement.textContent = targetsRemaining;
+                
+                // Actualizar estado del freno
+                updateBrakeButton();
+                
+                // Dibujar inmediatamente después de inicializar
+                draw();
+            }
+            
+            // Actualizar botón de freno
+            function updateBrakeButton() {
+                if (score >= 300 && brakePower === 0) {
+                    brakeBtn.classList.remove('btn-disabled');
+                    brakeAvailable = true;
+                } else {
+                    brakeBtn.classList.add('btn-disabled');
+                    brakeAvailable = false;
+                }
+            }
+            
+            // Dibujar elementos del juego
+            function draw() {
+                // Limpiar canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Dibujar fondo con efecto de rejilla
+                drawGridBackground();
+                
+                // Dibujar objetivos
+                targets.forEach(target => {
+                    ctx.beginPath();
+                    ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = target.color;
+                    ctx.fill();
+                    
+                    // Borde brillante
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.stroke();
+                    
+                    // Centro transparente
+                    ctx.beginPath();
+                    ctx.arc(target.x, target.y, target.radius * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.fill();
+                });
+                
+                // Dibujar bola del jugador
+                ctx.beginPath();
+                ctx.arc(playerBall.x, playerBall.y, playerBall.radius, 0, Math.PI * 2);
+                
+                // Efecto degradado
+                const gradient = ctx.createRadialGradient(
+                    playerBall.x, playerBall.y, playerBall.radius * 0.3,
+                    playerBall.x, playerBall.y, playerBall.radius
+                );
+                gradient.addColorStop(0, playerBall.color);
+                gradient.addColorStop(1, '#B71C1C');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Destello
+                ctx.beginPath();
+                ctx.arc(
+                    playerBall.x - playerBall.radius * 0.3, 
+                    playerBall.y - playerBall.radius * 0.3, 
+                    playerBall.radius * 0.4, 
+                    0, Math.PI * 2
+                );
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+                
+                // Borde
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.stroke();
+                
+                // Si el freno está activo, dibujar efecto
+                if (brakeActive) {
+                    ctx.beginPath();
+                    ctx.arc(playerBall.x, playerBall.y, playerBall.radius + 10, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(playerBall.x, playerBall.y, playerBall.radius + 15, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 165, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+            
+            // Dibujar fondo con efecto de rejilla
+            function drawGridBackground() {
+                const gridSize = 30;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                
+                // Líneas verticales
+                for (let x = 0; x <= canvas.width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                // Líneas horizontales
+                for (let y = 0; y <= canvas.height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                // Centro
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.fill();
+            }
+            
+            // Actualizar posición de la bola
+            function update() {
+                if (!gameRunning) return;
+                
+                // Aplicar dirección del joystick si está activo
+                if (joystickActive) {
+                    playerBall.dx = Math.cos(joystickAngle) * playerBall.speed;
+                    playerBall.dy = Math.sin(joystickAngle) * playerBall.speed;
+                }
+                
+                // Si el freno está activo, reducir la velocidad
+                if (brakeActive) {
+                    const magnitude = Math.sqrt(playerBall.dx * playerBall.dx + playerBall.dy * playerBall.dy);
+                    if (magnitude > 0) {
+                        playerBall.dx = (playerBall.dx / magnitude) * (playerBall.originalSpeed * 0.3);
+                        playerBall.dy = (playerBall.dy / magnitude) * (playerBall.originalSpeed * 0.3);
+                    }
+                }
+                
+                // Mover bola
+                playerBall.x += playerBall.dx;
+                playerBall.y += playerBall.dy;
+                
+                // Detectar colisiones con los bordes
+                if (playerBall.x - playerBall.radius < 0) {
+                    playerBall.x = playerBall.radius;
+                    playerBall.dx = Math.abs(playerBall.dx);
+                } else if (playerBall.x + playerBall.radius > canvas.width) {
+                    playerBall.x = canvas.width - playerBall.radius;
+                    playerBall.dx = -Math.abs(playerBall.dx);
+                }
+                
+                if (playerBall.y - playerBall.radius < 0) {
+                    playerBall.y = playerBall.radius;
+                    playerBall.dy = Math.abs(playerBall.dy);
+                } else if (playerBall.y + playerBall.radius > canvas.height) {
+                    playerBall.y = canvas.height - playerBall.radius;
+                    playerBall.dy = -Math.abs(playerBall.dy);
+                }
+            }
+            
+            // Comprobar si la bola está dentro de un objetivo
+            function getContainingTarget() {
+                for (let i = 0; i < targets.length; i++) {
+                    const target = targets[i];
+                    const dx = playerBall.x - target.x;
+                    const dy = playerBall.y - target.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Comprobar si la bola está completamente dentro del objetivo
+                    if (distance < target.radius - playerBall.radius) {
+                        return target;
+                    }
+                }
+                return null;
+            }
+            
+            // Crear efecto visual inmediato
+            function createVisualEffect(x, y, success) {
+                const effect = document.createElement('div');
+                effect.className = `match-effect ${success ? 'success-effect' : 'error-effect'}`;
+                effect.style.left = `${x}px`;
+                effect.style.top = `${y}px`;
+                effect.style.width = `${playerBall.radius * 4}px`;
+                effect.style.height = `${playerBall.radius * 4}px`;
+                effect.style.transform = 'translate(-50%, -50%)';
+                
+                document.querySelector('.game-container').appendChild(effect);
+                
+                // Animación
+                effect.animate([
+                    { transform: 'translate(-50%, -50%) scale(0.5)', opacity: 1 },
+                    { transform: 'translate(-50%, -50%) scale(1.5)', opacity: 0 }
+                ], {
+                    duration: 500,
+                    easing: 'ease-out'
+                });
+                
+                // Eliminar después de la animación
+                setTimeout(() => effect.remove(), 500);
+            }
+            
+            // Crear popup de puntos
+            function createPointsPopup(x, y, points) {
+                const popup = document.createElement('div');
+                popup.className = 'points-popup';
+                popup.textContent = `+${points}`;
+                popup.style.left = `${x}px`;
+                popup.style.top = `${y}px`;
+                
+                document.querySelector('.game-container').appendChild(popup);
+                
+                // Eliminar después de la animación
+                setTimeout(() => popup.remove(), 1000);
+            }
+            
+            // Función para presionar "Match!" con respuesta inmediata
+            function match() {
+                // Efecto visual inmediato
+                createVisualEffect(playerBall.x, playerBall.y, false);
+                
+                // Verificar colisión de manera síncrona para respuesta inmediata
+                const target = getContainingTarget();
+                
+                if (target) {
+                    // Actualizar UI inmediatamente
+                    const points = Math.floor(100 * (35 / target.radius));
+                    score += points;
+                    targetsRemaining--;
+                    
+                    scoreElement.textContent = score;
+                    targetsElement.textContent = targetsRemaining;
+                    
+                    // Efecto de éxito
+                    createVisualEffect(playerBall.x, playerBall.y, true);
+                    createPointsPopup(playerBall.x, playerBall.y, points);
+                    
+                    // Eliminar el objetivo específico
+                    const index = targets.findIndex(t => t.id === target.id);
+                    if (index !== -1) {
+                        targets.splice(index, 1);
+                    }
+                    
+                    // Actualizar estado del freno
+                    updateBrakeButton();
+                    
+                    // Comprobar si se completó el nivel
+                    if (targetsRemaining === 0) {
+                        gameRunning = false;
+                        
+                        if (currentLevel === 10) {
+                            // Juego completado
+                            totalScoreElement.textContent = score;
+                            gameCompleteScreen.style.display = 'flex';
+                        } else {
+                            // Nivel completado
+                            levelScoreElement.textContent = score;
+                            nextLevelElement.textContent = currentLevel + 1;
+                            levelCompleteScreen.style.display = 'flex';
+                        }
+                    }
+                } else {
+                    // Crear nuevo círculo en la posición actual
+                    const newRadius = playerBall.radius * 1.5 + Math.random() * 10;
+                    targets.push({
+                        x: playerBall.x,
+                        y: playerBall.y,
+                        radius: newRadius,
+                        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+                        id: nextTargetId++ // Asignar ID único
+                    });
+                    targetsRemaining++;
+                    targetsElement.textContent = targetsRemaining;
+                }
+            }
+            
+            // Función para activar el freno
+            function activateBrake() {
+                if (!brakeAvailable || brakeActive) return;
+                
+                brakeActive = true;
+                playerBall.speed = playerBall.originalSpeed * 0.3; // Reducir velocidad a 30%
+                brakeBtn.classList.add('btn-disabled');
+                brakeAvailable = false;
+                brakeIndicator.style.display = 'block';
+                
+                // Aplicar reducción de velocidad inmediata
+                const magnitude = Math.sqrt(playerBall.dx * playerBall.dx + playerBall.dy * playerBall.dy);
+                if (magnitude > 0) {
+                    playerBall.dx = (playerBall.dx / magnitude) * playerBall.speed;
+                    playerBall.dy = (playerBall.dy / magnitude) * playerBall.speed;
+                }
+                
+                // Efecto visual
+                createVisualEffect(playerBall.x, playerBall.y, true);
+                
+                // Restaurar velocidad después de 10 segundos
+                clearTimeout(brakeTimeout);
+                let timeLeft = 10;
+                
+                const brakeInterval = setInterval(() => {
+                    timeLeft--;
+                    brakeIndicator.textContent = `¡FRENO ACTIVADO! (${timeLeft}s)`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(brakeInterval);
+                        brakeActive = false;
+                        playerBall.speed = playerBall.originalSpeed;
+                        brakeIndicator.style.display = 'none';
+                        updateBrakeButton();
+                        
+                        // Restaurar la velocidad del vector de movimiento
+                        const magnitude = Math.sqrt(playerBall.dx * playerBall.dx + playerBall.dy * playerBall.dy);
+                        if (magnitude > 0) {
+                            // Normalizar el vector actual y multiplicar por la velocidad original
+                            playerBall.dx = (playerBall.dx / magnitude) * playerBall.originalSpeed;
+                            playerBall.dy = (playerBall.dy / magnitude) * playerBall.originalSpeed;
+                        }
+                    }
+                }, 1000);
+            }
+            
+            // Siguiente nivel
+            function nextLevel() {
+                currentLevel++;
+                levelCompleteScreen.style.display = 'none';
+                gameRunning = true;
+                initLevel();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Reiniciar juego
+            function restartGame() {
+                score = 0;
+                currentLevel = 1;
+                gameOverScreen.style.display = 'none';
+                gameCompleteScreen.style.display = 'none';
+                gameRunning = true;
+                brakeActive = false;
+                brakePower = 0;
+                brakeIndicator.style.display = 'none';
+                playerBall.speed = playerBall.originalSpeed;
+                updateBrakeButton();
+                initLevel();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Bucle principal del juego
+            function gameLoop() {
+                update();
+                draw();
+                
+                if (gameRunning) {
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+            
+            // Configurar controles
+            function setupControls() {
+                // Botón Match!
+                matchBtn.addEventListener('click', match);
+                matchBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    match();
+                });
+                
+                // Botón Freno
+                brakeBtn.addEventListener('click', activateBrake);
+                brakeBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    activateBrake();
+                });
+                
+                // Joystick
+                joystick.addEventListener('mousedown', startJoystick);
+                joystick.addEventListener('touchstart', startJoystickTouch);
+                
+                document.addEventListener('mousemove', moveJoystick);
+                document.addEventListener('touchmove', moveJoystickTouch);
+                
+                document.addEventListener('mouseup', stopJoystick);
+                document.addEventListener('touchend', stopJoystick);
+            }
+            
+            // Funciones para el joystick
+            function startJoystick(e) {
+                joystickActive = true;
+                updateJoystick(e.clientX, e.clientY);
+            }
+            
+            function startJoystickTouch(e) {
+                e.preventDefault();
+                joystickActive = true;
+                updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+            }
+            
+            function moveJoystick(e) {
+                if (joystickActive) {
+                    updateJoystick(e.clientX, e.clientY);
+                }
+            }
+            
+            function moveJoystickTouch(e) {
+                if (joystickActive) {
+                    e.preventDefault();
+                    updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }
+            
+            function stopJoystick() {
+                joystickActive = false;
+                joystick.style.transform = 'translate(0, 0)';
+            }
+            
+            function updateJoystick(clientX, clientY) {
+                const rect = joystick.parentElement.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const deltaX = clientX - centerX;
+                const deltaY = clientY - centerY;
+                
+                // Calcular distancia desde el centro
+                const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), 35);
+                
+                // Calcular ángulo
+                joystickAngle = Math.atan2(deltaY, deltaX);
+                
+                // Mover el joystick visualmente
+                const moveX = Math.cos(joystickAngle) * distance;
+                const moveY = Math.sin(joystickAngle) * distance;
+                
+                joystick.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+            
+            // Iniciar el juego
+            initLevel();
+            setupControls();
+            gameLoop();
+        }
+    </script>
+</body>
+</html>
