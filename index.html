@@ -746,7 +746,7 @@
         </div>
         
         <div class="instructions">
-            <i class="fas fa-info-circle"></i> Usa la palanca para cambiar la dirección de la bolita y presiona "MATCH" cuando esté dentro de un círculo para eliminarlo y ganar puntos; avanzarás de nivel cuando logres eliminar todos los círculos. Puedes activar el "FRENO" cada 300 puntos. Y en caso de que desees aportar un café virtual al creador del juego, puedes hacerlo <a href="#" id="donationLink">dando clic aquí</a>
+            <i class="fas fa-info-circle"></i> Usa la palanca para cambiar la dirección de la bolita y presiona "MATCH" cuando esté dentro de un círculo para eliminarlo y ganar puntos; avanzarás de nivel cuando logres eliminar todos los círculos. Puedes activar el "FRENO" una vez por nivel. Y en caso de que desees aportar un café virtual al creador del juego, puedes hacerlo <a href="#" id="donationLink">dando clic aquí</a>
         </div>
     </div>
     
@@ -756,10 +756,7 @@
             <button class="close-modal" id="closeModal">&times;</button>
             <h3><i class="fas fa-coffee"></i> ¡Apoya con un café virtual!</h3>
             
-            <div class="qr-container">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Bancolombia%3A%2055673514323" 
-                     alt="QR Bancolombia" class="qr-code">
-            </div>
+            <!-- Se ha eliminado el contenedor del código QR -->
             
             <div class="bank-info">
                 <p><strong>Bancolombia</strong></p>
@@ -910,7 +907,6 @@
         
         let brakeActive = false;
         let brakeAvailable = false;
-        let brakePower = 0;
         let brakeTimeout;
         let targets = [];
         let joystickActive = false;
@@ -1022,7 +1018,8 @@
                 levelElement.textContent = currentLevel;
                 targetsElement.textContent = targetsRemaining;
                 
-                // Actualizar estado del freno
+                // El freno estará disponible al inicio de cada nivel
+                brakeAvailable = true;
                 updateBrakeButton();
                 
                 // Dibujar inmediatamente después de inicializar
@@ -1031,12 +1028,10 @@
             
             // Actualizar botón de freno
             function updateBrakeButton() {
-                if (score >= 300 && brakePower === 0) {
+                if (brakeAvailable && !brakeActive) {
                     brakeBtn.classList.remove('btn-disabled');
-                    brakeAvailable = true;
                 } else {
                     brakeBtn.classList.add('btn-disabled');
-                    brakeAvailable = false;
                 }
             }
             
@@ -1305,7 +1300,7 @@
                 brakeActive = true;
                 playerBall.speed = playerBall.originalSpeed * 0.3; // Reducir velocidad a 30%
                 brakeBtn.classList.add('btn-disabled');
-                brakeAvailable = false;
+                brakeAvailable = false; // El freno ya no estará disponible en este nivel
                 brakeIndicator.style.display = 'block';
                 
                 // Aplicar reducción de velocidad inmediata
@@ -1331,7 +1326,6 @@
                         brakeActive = false;
                         playerBall.speed = playerBall.originalSpeed;
                         brakeIndicator.style.display = 'none';
-                        updateBrakeButton();
                         
                         // Restaurar la velocidad del vector de movimiento
                         const magnitude = Math.sqrt(playerBall.dx * playerBall.dx + playerBall.dy * playerBall.dy);
@@ -1352,6 +1346,8 @@
                 brakeActive = false;
                 clearTimeout(brakeTimeout);
                 brakeIndicator.style.display = 'none';
+                // El freno estará disponible nuevamente en el siguiente nivel
+                brakeAvailable = true;
                 initLevel();
                 requestAnimationFrame(gameLoop);
             }
@@ -1365,11 +1361,11 @@
                 levelCompleteScreen.style.display = 'none';
                 gameRunning = true;
                 brakeActive = false;
-                brakePower = 0;
                 brakeIndicator.style.display = 'none';
                 playerBall.speed = playerBall.originalSpeed;
                 clearTimeout(brakeTimeout);
-                updateBrakeButton();
+                // El freno estará disponible en el nivel 1
+                brakeAvailable = true;
                 initLevel();
                 requestAnimationFrame(gameLoop);
             }
